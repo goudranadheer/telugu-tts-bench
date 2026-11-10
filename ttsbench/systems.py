@@ -14,11 +14,12 @@ class ElevenLabs:
 
     ext = "mp3"
 
-    def __init__(self, model_id="eleven_v3", voice_id=None):
+    def __init__(self, model_id="eleven_v3", voice_id=None, normalization="auto"):
         import requests
 
         self.requests = requests
         self.model_id = model_id
+        self.normalization = normalization  # "auto" | "on" | "off"
         self.voice_id = voice_id or os.environ["ELEVENLABS_VOICE_ID"]
         self.key = os.environ["ELEVENLABS_API_KEY"]
 
@@ -26,8 +27,26 @@ class ElevenLabs:
         r = self.requests.post(
             f"https://api.elevenlabs.io/v1/text-to-speech/{self.voice_id}",
             headers={"xi-api-key": self.key},
-            json={"text": text, "model_id": self.model_id, "language_code": "te"},
+            json={"text": text, "model_id": self.model_id, "language_code": "te",
+                  "apply_text_normalization": self.normalization},
             timeout=120,
+        )
+        r.raise_for_status()
+        out.write_bytes(r.content)
+
+
+class ElevenDialogue(ElevenLabs):
+    """ElevenLabs Text to Dialogue API, the documented route for eleven_v4.
+    Sent as a single-speaker dialogue of one line."""
+
+    def synthesize(self, text: str, out: Path):
+        r = self.requests.post(
+            "https://api.elevenlabs.io/v1/text-to-dialogue",
+            headers={"xi-api-key": self.key},
+            json={"inputs": [{"text": text, "voice_id": self.voice_id}],
+                  "model_id": self.model_id, "language_code": "te",
+                  "apply_text_normalization": self.normalization},
+            timeout=180,
         )
         r.raise_for_status()
         out.write_bytes(r.content)
@@ -116,6 +135,7 @@ class IndicF5:
 
 SYSTEMS = {
     "eleven_v3": lambda: ElevenLabs("eleven_v3"),
+    "eleven_v4": lambda: ElevenDialogue("eleven_v4"),
     "eleven_flash_v2_5": lambda: ElevenLabs("eleven_flash_v2_5"),
     "mms": MMS,
     "indic_parler": IndicParler,

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-A benchmark of Telugu TTS intelligibility whose main point is that the usual metric is untrustworthy: Telugu ASR is weak, so a raw ASR-based error rate mostly measures the ASR judge, not the TTS. Every design choice follows from that (human-speech calibration row, several judges, akshara-level scoring). `PLAN.md` is the day-by-day plan and says which result framings matter; `README.md` "Results" is filled in last.
+A benchmark of how well TTS systems read Telugu numbers, dates, currency, codes and mixed English (text normalisation), with Eleven v3 vs v4 as the headline comparison. Primary measure: blind right/wrong verdicts from a native listener (`make_listening_page.py` -> `score_listening.py`). Secondary measure: ASR error rates, which are untrustworthy on their own because Telugu ASR is weak, hence the human-speech calibration row, several judges and akshara-level scoring. `PLAN.md` is the day-by-day plan and says which result framings matter; `README.md` "Results" is filled in last.
 
 Status: the pipeline has run end to end once, on CPU, with `mms` + `whisper_te_small` on a small subset (`results/pipeline_check.md`; a check, not a result). `build_testset.py`, the `MMS` adapter and `HFWhisper` are known to work. The ElevenLabs, Indic Parler, IndicF5 and Scribe adapters are still unrun, so expect to fix API details on first use.
 
@@ -19,6 +19,8 @@ python scripts/build_testset.py --n 150       # -> data/testset.csv, audio/human
 python scripts/synthesize.py --system mms     # -> audio/<system>/<id>.<ext>, timing.jsonl
 python scripts/transcribe.py --judge whisper_te   # appends results/transcripts.jsonl
 python scripts/score.py --unit akshara        # -> results/report.md, results/failures.csv
+python scripts/make_listening_page.py --systems a b   # -> results/listening/index.html, key.csv
+python scripts/score_listening.py             # key.csv + verdicts.csv -> results/listening_report.md
 ```
 
 On this machine the interpreter is `python3` (there is no `python` on PATH).
@@ -45,6 +47,9 @@ Things that are easy to get wrong:
 - **Aksharas** (`normalize.aksharas`) are orthographic syllables: a virama-joined consonant cluster plus vowel sign and modifiers is one unit. This is the default scoring unit because Telugu is agglutinative and word error rate over-penalises a single wrong suffix.
 - **Scoring must stay dependency-free.** `ttsbench/metrics.py`, `normalize.py`, `stats.py` and `score.py` use only the standard library; adapters import torch/transformers/requests inside their classes for that reason.
 - **Resumability.** `synthesize.py` skips ids whose audio file exists; `transcribe.py` skips `(id, system, judge)` keys already in `transcripts.jsonl`. To redo something, delete the file or the lines. Synthesis failures are logged to `timing.jsonl` and skipped, not raised.
+- **Listening verdicts.** `key.csv` maps blind clip codes to system and id; `verdicts.csv` is exported from the page by the listener. Both are committed; `index.html` is not. Re-running `make_listening_page.py` with a different seed or system list changes the codes, so never regenerate once judging has started. "unsure" and unjudged clips are excluded from error rates.
+- **`eleven_v4` goes through the Text to Dialogue endpoint** (`ElevenDialogue`), sent as a one-line, one-speaker dialogue. `apply_text_normalization` stays at `auto` for all ElevenLabs systems; it is the behaviour under test, so changing it changes the result.
+- **Hard-case categories and judging rules** live in `data/CATEGORIES.md`. `spoken` is one acceptable reading, used only by the ASR score; the human verdict accepts any valid reading.
 - **Adding a system or judge** means a class with `synthesize(text, out)` plus an `ext` attribute, or `transcribe(path)`, registered in the `SYSTEMS` / `JUDGES` dict.
 - **Old Whisper fine-tunes** (`vasista22/*`) ship a generation config that current transformers rejects when a language is passed; `HFWhisper(model_id, gen_config_from=...)` borrows the matching OpenAI base config. Any new Whisper fine-tune judge may need the same.
 - **CPU speed.** `whisper_te_small` takes roughly 40 s per FLEURS clip on 2 CPU cores; use a GPU for full runs and the large judges.

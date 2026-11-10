@@ -45,3 +45,14 @@ def test_paired_bootstrap_detects_clear_winner():
     bad = [(3, 10)] * 50
     diff, lo, hi, p = paired_bootstrap(good, bad, n_boot=500)
     assert diff < 0 and hi < 0 and p == 0.0
+
+
+def test_wilson_and_mcnemar():
+    from ttsbench.listening import mcnemar_exact, wilson
+
+    lo, hi = wilson(5, 10)
+    assert 0.23 < lo < 0.24 and 0.76 < hi < 0.77
+    assert wilson(0, 10)[0] == 0.0 and wilson(0, 10)[1] > 0.2
+    assert mcnemar_exact(0, 0) == 1.0
+    assert mcnemar_exact(5, 5) == 1.0
+    assert abs(mcnemar_exact(0, 6) - 2 / 64) < 1e-12

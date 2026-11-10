@@ -1,37 +1,63 @@
-# 10-day plan
+# Plan
 
 Rule: push to GitHub every day. A public commit history is part of the artifact.
 
-| Day | Do | Done when |
+## The question (changed 2026-11-10)
+
+Do current TTS systems read Telugu numbers, dates, currency, phone numbers
+and mixed English correctly, and did Eleven v4 improve on Eleven v3?
+
+Why this question: ElevenLabs published an internal text-normalisation
+benchmark when v3 left alpha (27 categories, 8 languages, error rate 15.3%
+to 4.9%). The languages are not named and nothing comparable is public for
+v4. This project runs the same kind of test for Telugu.
+
+Two measurements, reported side by side:
+
+1. **Human verdicts (primary).** A native speaker marks each hard-case clip
+   right or wrong on a blind, shuffled listening page.
+2. **ASR error rates (secondary).** Calibrated against human FLEURS speech,
+   as before. Also answers a side question: how far can an ASR judge be
+   trusted for this in Telugu?
+
+## Steps
+
+| # | Do | Done when |
 |---|---|---|
-| 1 | Create the public repo, push this scaffold, run `pytest`. Get an ElevenLabs API key and a Hugging Face token; accept the Indic Parler-TTS terms. | Tests green on your machine, repo public |
-| 2 | Run `build_testset.py`. Synthesize with `mms` (CPU is enough). Transcribe with `whisper_te`. Run `score.py`. Fix whatever breaks in the adapters. | One full row in `report.md`, end to end |
-| 3 | Write 20 sentences each for `numbers`, `codemix`, `conjuncts` in `data/hard_cases.csv`. Check the 7 seed rows: they were machine-written and need a native speaker's eye. | 60+ hard cases |
-| 4 | Synthesize `eleven_v3` and `eleven_flash_v2_5`. Pick one stock voice and record its id in the README. | Two more systems |
-| 5 | Synthesize `indic_parler` and `indicf5` on a GPU (Colab works). | All five systems |
-| 6 | Transcribe everything with `whisper_v3` and `scribe_v2`. Re-score. | Three judges x six audio sets |
-| 7 | Calibration analysis: human-speech floor per judge, and do the judges rank the systems the same way? | One paragraph and one table |
-| 8 | Listen to the 30 worst rows per system in `failures.csv`. Tag each: real TTS error, ASR error, or reference error. | Tagged sheet, error-type counts |
-| 9 | Small human check: 20 sentences x all systems, 5 native listeners, 1-5 naturalness. A shared form is enough. | Mean score per system |
-| 10 | Write up: fill README Results, lead with the one finding that surprised you, add 3 audio examples. | README someone can read in 3 minutes |
+| 1 | Repo public, tests green, pipeline run end to end | done |
+| 2 | Check the seed rows in `data/hard_cases.csv`; write 10 sentences per category following `data/CATEGORIES.md` | about 120 hard cases |
+| 3 | `build_testset.py --n 150`; synthesize `eleven_v3` and `eleven_v4` with the same voice and `apply_text_normalization` left at `auto`; record the voice id in the README | two ElevenLabs systems |
+| 4 | Synthesize `mms`, `indic_parler`, `indicf5` (GPU for the last two) | open baselines |
+| 5 | `make_listening_page.py --systems ...`; judge every clip; export `verdicts.csv`; `score_listening.py` | `results/listening_report.md` |
+| 6 | Transcribe with `whisper_te`, `whisper_v3`, `scribe_v2`; `score.py` | `results/report.md` |
+| 7 | Compare: do the ASR scores agree with your verdicts per category? | one table, one paragraph |
+| 8 | Write up: README Results, the main finding first, 3 audio examples per failure type | readable in 3 minutes |
 
-## What makes this worth a recruiter's click
+## What would make this worth a researcher's click
 
-Not "ElevenLabs scored X". The interesting result is one of these, whichever
-the data supports:
+Whichever of these the data supports:
 
-- how much of a Telugu TTS error score is really the ASR judge's own error
-- a category where every system fails (digits and code-mixing are likely)
-- judges disagreeing on which system is best
+- a category where v4 still fails in Telugu, with clips
+- a category v4 fixed relative to v3 (credit where due)
+- ASR-based scoring disagreeing with a native listener
 
-Report what you find, including results that are unflattering to any system.
+Report what you find, including results that flatter or embarrass any system.
 
-## Week 2 (optional, stronger)
+## Known weaknesses to state in the write-up
 
-Fine-tune one open model on Telugu data and re-run the same benchmark to show
-a measured before/after. Only start once the day-10 write-up is public.
+- One listener. A second native listener on a 50-clip subset would give an
+  agreement figure.
+- One voice per system; normalisation may differ by voice.
+- Hard cases are written by the author, so they reflect one person's idea
+  of "typical" Telugu text.
+
+## Later (optional)
+
+Curate Telugu data aimed at the worst category, fine-tune one open model,
+and show the before/after on this benchmark.
 
 ## Budget
 
-Test set is roughly 210 sentences, about 80 characters each: around 17k
-characters per ElevenLabs model. Check your plan's credit allowance first.
+About 120 hard cases + 150 FLEURS sentences, roughly 20k characters per
+ElevenLabs model. Check your plan's credit allowance and per-model pricing
+before running v4.
