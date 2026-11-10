@@ -9,7 +9,7 @@ and mixed English correctly, and did Eleven v4 improve on Eleven v3?
 
 Why this question: ElevenLabs published an internal text-normalisation
 benchmark when v3 left alpha (27 categories, 8 languages, error rate 15.3%
-to 4.9%). The languages are not named and nothing comparable is public for
+to 4.9%). The languages are not named and we found nothing comparable for
 v4. This project runs the same kind of test for Telugu.
 
 Two measurements, reported side by side:

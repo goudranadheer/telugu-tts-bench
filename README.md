@@ -11,7 +11,7 @@ pipeline check (`results/pipeline_check.md`). The other adapters are unrun.
 
 Turning "₹450" or "9848022338" into the right spoken words is a known weak
 spot of TTS systems. ElevenLabs reported an internal benchmark of it for
-Eleven v3 (27 categories, 8 unnamed languages); nothing public covers Telugu
+Eleven v3 (27 categories, 8 unnamed languages); we found no public figures for Telugu
 or Eleven v4.
 
 This benchmark measures it for Telugu in two ways:
