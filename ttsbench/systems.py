@@ -1,7 +1,7 @@
 """TTS system adapters. Each takes Telugu text and writes one audio file.
 
-NOTE: these adapters call external models/APIs and were NOT run when the
-scaffold was written. Expect to fix small API details on first run (day 2).
+Run status: `mms` has been run end to end. The other adapters call external
+models/APIs and have NOT been run yet; expect to fix small API details.
 Heavy imports live inside the classes so the scoring code has no GPU deps.
 """
 import os

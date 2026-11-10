@@ -1,16 +1,24 @@
 """ASR judges. Several are used on purpose: Telugu ASR is weak, so no single
 recogniser can be trusted as the measure of TTS intelligibility.
 
-NOTE: not run when the scaffold was written; check on first use.
+Run status: `whisper_te_small` has been run end to end (CPU). The other
+judges have not been run yet.
 """
 import os
 from pathlib import Path
 
 
 class HFWhisper:
-    def __init__(self, model_id: str):
+    """Whisper checkpoint from Hugging Face.
+
+    `gen_config_from`: older fine-tunes (e.g. vasista22/*) ship a generation
+    config that current transformers rejects when a language is requested.
+    Naming the matching OpenAI base model here borrows its generation config.
+    """
+
+    def __init__(self, model_id: str, gen_config_from: str | None = None):
         import torch
-        from transformers import pipeline
+        from transformers import GenerationConfig, pipeline
 
         self.pipe = pipeline(
             "automatic-speech-recognition",
@@ -18,6 +26,8 @@ class HFWhisper:
             device=0 if torch.cuda.is_available() else -1,
             chunk_length_s=30,
         )
+        if gen_config_from:
+            self.pipe.model.generation_config = GenerationConfig.from_pretrained(gen_config_from)
 
     def transcribe(self, path: Path) -> str:
         return self.pipe(
@@ -50,7 +60,9 @@ class Scribe:
 
 
 JUDGES = {
-    "whisper_te": lambda: HFWhisper("vasista22/whisper-telugu-large-v2"),
+    "whisper_te": lambda: HFWhisper("vasista22/whisper-telugu-large-v2", "openai/whisper-large-v2"),
+    # Small variant: runs on a CPU, for pipeline checks. Not a headline judge.
+    "whisper_te_small": lambda: HFWhisper("vasista22/whisper-telugu-small", "openai/whisper-small"),
     "whisper_v3": lambda: HFWhisper("openai/whisper-large-v3"),
     "scribe_v2": Scribe,
 }

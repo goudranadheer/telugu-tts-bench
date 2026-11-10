@@ -7,7 +7,8 @@ Two parts:
   2. `hard`    - your hand-written hard cases from data/hard_cases.csv.
 
 Usage: python scripts/build_testset.py --n 150
-NOTE: not run when the scaffold was written.
+Run status: works with datasets<3.0. It downloads all FLEURS Telugu splits
+(about 2.3 GB) even though only the test split is used.
 """
 import argparse
 import csv

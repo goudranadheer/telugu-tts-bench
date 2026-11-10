@@ -3,8 +3,9 @@
 How well do current TTS systems speak Telugu, and can we trust the numbers
 we use to measure that?
 
-**Status: scaffold. No results yet.** The scoring code is tested; the model
-adapters have not been run.
+**Status: pipeline runs end to end; no benchmark results yet.** One system
+(`mms`) and one small CPU judge have been run on a handful of sentences as a
+pipeline check (`results/pipeline_check.md`). The other adapters are unrun.
 
 ## The question
 
