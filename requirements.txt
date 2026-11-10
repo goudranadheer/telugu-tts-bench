@@ -1,0 +1,12 @@
+# Scoring (scripts/score.py, tests) needs only the standard library + pytest.
+pytest
+
+# Synthesis and transcription (run on a GPU machine or Colab):
+torch
+transformers
+datasets<3.0        # google/fleurs still uses a loading script
+soundfile
+librosa
+requests
+# git+https://github.com/huggingface/parler-tts.git   # for indic_parler
+# git+https://github.com/ai4bharat/IndicF5.git        # for indicf5 (use its own venv)
