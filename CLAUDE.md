@@ -11,23 +11,23 @@ Status: the pipeline has run end to end once, on CPU, with `mms` + `whisper_te_s
 ## Commands
 
 ```bash
-python -m pytest                              # all tests (stdlib + pytest only)
-python -m pytest tests/test_core.py::test_name   # single test
+python3 -m pytest                              # all tests (stdlib + pytest only)
+python3 -m pytest tests/test_core.py::test_name   # single test
 
 pip install -r requirements.txt               # heavy deps, only for synthesis/transcription
-python scripts/build_testset.py --n 150       # -> data/testset.csv, audio/human/
-python scripts/synthesize.py --system mms     # -> audio/<system>/<id>.<ext>, timing.jsonl
-python scripts/transcribe.py --judge whisper_te   # appends results/transcripts.jsonl
-python scripts/score.py --unit akshara        # -> results/report.md, results/failures.csv
-python scripts/make_listening_page.py --systems a b   # -> results/listening/index.html, key.csv
-python scripts/score_listening.py             # key.csv + verdicts.csv -> results/listening_report.md
+python3 scripts/build_testset.py --n 150       # -> data/testset.csv, audio/human/
+python3 scripts/synthesize.py --system mms     # -> audio/<system>/<id>.<ext>, timing.jsonl
+python3 scripts/transcribe.py --judge whisper_te   # appends results/transcripts.jsonl
+python3 scripts/score.py --unit akshara        # -> results/report.md, results/failures.csv
+python3 scripts/make_listening_page.py --systems a b   # -> results/listening/index.html, key.csv
+python3 scripts/score_listening.py             # key.csv + verdicts.csv -> results/listening_report.md
 ```
 
-On this machine the interpreter is `python3` (there is no `python` on PATH).
+On this machine the interpreter is `python3` (there is no `python` on PATH); the README's `python` commands need the same substitution.
 
 Scripts are run from the repo root as plain files; they add the root to `sys.path` themselves. There is no installable package and no linter config.
 
-Environment variables: `ELEVENLABS_API_KEY`, `ELEVENLABS_VOICE_ID` (ElevenLabs TTS and Scribe), `INDICF5_REF_AUDIO`, `INDICF5_REF_TEXT` (IndicF5 reference clip). `indic_parler` is gated on Hugging Face and needs a logged-in token. `indic_parler` and `indicf5` need extra git installs listed as comments in `requirements.txt`; IndicF5 wants its own venv.
+Environment variables: `ELEVENLABS_API_KEY`, `ELEVENLABS_VOICE_ID` (ElevenLabs TTS and Scribe), `INDICF5_REF_AUDIO`, `INDICF5_REF_TEXT` (IndicF5 reference clip). They are read from `os.environ` only: nothing loads `.env` (gitignored), so export it first, e.g. `set -a; . ./.env; set +a`. `indic_parler` is gated on Hugging Face and needs a logged-in token. `indic_parler` and `indicf5` need extra git installs listed as comments in `requirements.txt`; IndicF5 wants its own venv.
 
 ## Architecture
 
@@ -52,7 +52,7 @@ Things that are easy to get wrong:
 - **Hard-case categories and judging rules** live in `data/CATEGORIES.md`. `spoken` is one acceptable reading, used only by the ASR score; the human verdict accepts any valid reading.
 - **Adding a system or judge** means a class with `synthesize(text, out)` plus an `ext` attribute, or `transcribe(path)`, registered in the `SYSTEMS` / `JUDGES` dict.
 - **Old Whisper fine-tunes** (`vasista22/*`) ship a generation config that current transformers rejects when a language is passed; `HFWhisper(model_id, gen_config_from=...)` borrows the matching OpenAI base config. Any new Whisper fine-tune judge may need the same.
-- **CPU speed.** `whisper_te_small` takes roughly 40 s per FLEURS clip on 2 CPU cores; use a GPU for full runs and the large judges.
+- **Hardware.** `whisper_te_small` took roughly 40 s per FLEURS clip on a 2-core CPU machine. The current workstation has an RTX 4090 and 32 cores, so GPU systems and the large judges can run locally instead of on Colab.
 - **`scribe_v2` is an ElevenLabs model**, so it must never be the only judge reported for ElevenLabs TTS.
 
 `audio/`, `data/testset.csv` and `results/transcripts.jsonl` are gitignored; `results/report.md` and `results/failures.csv` are meant to be committed.
